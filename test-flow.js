@@ -1,6 +1,6 @@
 // JavaScript source code
 
-var testFlow = (function(window){
+var TestFlow = (function(window){
   
   return {
     status: 'ready',
@@ -12,7 +12,7 @@ var testFlow = (function(window){
       }
     },
     
-    halt: false,
+    halt: 0,
     
     steps: null,
     index:-1,
@@ -26,7 +26,7 @@ var testFlow = (function(window){
     
 
     config: {
-      "ignore-ajax": null
+      noWaitUrl: null
     },
     
     // registered actions..    
@@ -40,20 +40,16 @@ var testFlow = (function(window){
       }
     },
     
-    register: function(name, f){
-      if(this.actions[name])
-        throw new Error('Function ' + name + ' is already registered.');
-      this.actions[name] = f;
-    },
-    
-    unregister: function(name,f){
-      this.actions[name] = null;
+    registerActions: function (fac) {
+        for (var i in fac) {
+            this.actions[i] = fac[i];
+        }
     },
     
     run: function(t){
       this.steps = t;
       this.index = -1;
-      this.state('running');
+      this.state('started');
       this.runStep();
     },
     
@@ -67,6 +63,7 @@ var testFlow = (function(window){
           if(!f){
             this.state('error',action + ' action not defined');
           }
+          f.apply(this,step);
         }else{
           this.state('done');
         }
@@ -77,3 +74,33 @@ var testFlow = (function(window){
   };
   
 })(window);
+
+var PhantomJSTester = (function (window, TestFlow) {
+
+    var page = require('webpage').create();
+
+    var noWaitUrl = null;
+
+    page.onResourceRequested = function (rd, nr) {
+        if (!(noWaitUrl && noWaitUrl.test(rd.url))) {
+            TestFlow.halt++;
+        }
+    };
+
+    var oldConfig = TestFlow.actions.configure;
+    TestFlow.registerActions({
+        configure: function (action, config) {
+            oldConfig.apply(TestFlow, arguments);
+            noWaitUrl = new RegExp(TestFlow.config.noWaitUrl);
+        },
+        navigate: function (action,url) {
+            TestFlow.halt++;
+            page.open(url, function (status) {
+                TestFlow.halt--;
+            });
+        }
+    });
+    
+ 
+
+})(window, TestFlow)();
