@@ -1,27 +1,41 @@
 // JavaScript source code
 
-var TestFlow = (function(window){
+var TestFlow = (function (window) {
+
+    var status = 'ready';
+    var halt = 0;
+    var steps = null;
+    var index = -1;
+
   
   return {
-    status: 'ready',
     
-    state: function(s,d){
-      this.status = s;
-      if(/error/i.test(s)){
-        throw new Error(d);
-      }
-    },
-    
-    halt: 0,
-    
-    steps: null,
-    index:-1,
+      status: function (s, d) {
+          if (!arguments.length)
+              return status;
+          status = s;
+          if(/error/i.test(s)){
+            throw new Error(d);
+          }
+      },
+
+      haltAdd: function () {
+          halt++;
+      },
+      haltRemove: function () {
+          halt--;
+      },
+      configure: function (action, config) {
+          for (var i in config) {
+              this.config[i] = config[i];
+          }
+      },
+
     moveNext: function(){
-      var steps = this.steps;
       if(!steps)
         throw new Error('Steps are not loaded');
-      this.index++;
-      return this.index < steps.length;
+      index++;
+      return index < steps.length;
     },
     
 
@@ -29,16 +43,6 @@ var TestFlow = (function(window){
       noWaitUrl: null
     },
     
-    // registered actions..    
-    actions:{
-      
-      // configure method
-      configure: function(action,config){
-        for(var i in config){
-          this.config[i] = config[i];
-        }
-      }
-    },
     
     registerActions: function (fac) {
         for (var i in fac) {
@@ -47,25 +51,25 @@ var TestFlow = (function(window){
     },
     
     run: function(t){
-      this.steps = t;
-      this.index = -1;
-      this.state('started');
+      steps = t;
+      index = -1;
+      this.status('started');
       this.runStep();
     },
     
     runStep: function(){
       this.lastError = null;
-      if(!this.halt){
+      if(!halt){
         if(this.moveNext()){
-          var step = this.steps[this.index];
+          var step = steps[this.index];
           var action= step[0];
-          var f  = this.actions[action];
+          var f  = this[action];
           if(!f){
-            this.state('error',action + ' action not defined');
+            this.status('error',action + ' action not defined');
           }
           f.apply(this,step);
         }else{
-          this.state('done');
+          this.status('done');
         }
       }
       setTimeout(testFlow.runStep,100);
