@@ -6,7 +6,7 @@ var TestFlowEngine = (function (base) {
         name: "TestFlowEngine",
         base: base,
         start: function () {
-            this.wait = 0;
+            this._wait = 0;
         },
         properties: {
             steps: null,
@@ -17,6 +17,12 @@ var TestFlowEngine = (function (base) {
             set_status: function (v) {
                 this._status = v;
                 this.fire(v);
+            },
+            pushWait: function () {
+                this._wait++;
+            },
+            popWait: function () {
+                this._wait--;
             },
             configure: function (action, c) {
                 var conf = this._config = this._config || {};

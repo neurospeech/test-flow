@@ -53,6 +53,20 @@ Array.prototype.remove = function (item) {
     }
 }
 
+if (!Array.prototype.filter) {
+    Array.prototype.filter = function (f) {
+        var r = [];
+        var ae = new AtomEnumerator(this);
+        while (ae.next()) {
+            var item = ae.current();
+            if (f(item)) {
+                r.push(item);
+            }
+        }
+        return r;
+    }
+}
+
 if (!Array.prototype.indexOf) {
 
     Array.prototype.indexOf = function (item) {

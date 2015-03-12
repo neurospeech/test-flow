@@ -17,8 +17,11 @@ var EventDispatcher = (function () {
                 var hlist = this.eventHandlers[name];
                 if (hlist) {
                     var r = [];
-                    var e = Atom.query(hlist);
-                    if (f) e = e.where({ method: f });
+                    var e = hlist.filter(function (i) { return i.name == name; });
+                    if (f) {
+                        e = e.filter(function (i) { return i.method == f; });
+                    }
+                    e = e.enumerator();
                     while (e.next()) {
                         r.push(e.current());
                     }

@@ -56,7 +56,6 @@
     <None Include="NuGet.exe" />
     <None Include="NuGet.config" />
     <None Include="Package.nuspec" />
-    <Content Include="src\AtomQuery.js" />
     <Content Include="src\AtomEnumerator.js" />
     <Content Include="src\EventDispatcher.js" />
     <Content Include="src\phantomjs\TestFlow.PhantomJS.js" />
