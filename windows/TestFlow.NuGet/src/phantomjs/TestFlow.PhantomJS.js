@@ -1,7 +1,9 @@
-﻿/// <reference path="../AtomPrototype.js" />
+﻿/// <reference path="../AtomEnumerator.js" />
+/// <reference path="../AtomPrototype.js" />
+/// <reference path="../EventDispatcher.js" />
 /// <reference path="../TestFlowEngine.js" />
 
-var TestFlowPhantomJS = (function (window, base) {
+var TestFlowPhantomJS = window.TestFlowPhantomJS = (function (window, base) {
     return createClass({
         name: "TestFlowPhantomJS",
         base: base,
@@ -31,6 +33,23 @@ var TestFlowPhantomJS = (function (window, base) {
                         return;
                     }
                 });
+            },
+            evalJS: function (exp) {
+                return this._page.evaluateJavaScript(exp);
+            },
+            type: function (action, selector, text) {
+
+            },
+            keyPress: function (action, selector, keys) {
+            },
+            click: function (action, selector) {
+
+            },
+            setElementValue: function (action, selector, value) {
+                this._page.evaluate(function (s, v) {
+                    var e = document.querySelector(s);
+                    e.value = v;
+                }, selector, value);
             }
         }
     });

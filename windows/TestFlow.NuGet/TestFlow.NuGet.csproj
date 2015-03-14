@@ -56,9 +56,18 @@
     <None Include="NuGet.exe" />
     <None Include="NuGet.config" />
     <None Include="Package.nuspec" />
+    <Content Include="PhantomTestFlow.js">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>PhantomTestFlow.tt</DependentUpon>
+    </Content>
     <Content Include="src\AtomEnumerator.js" />
     <Content Include="src\EventDispatcher.js" />
     <Content Include="src\phantomjs\TestFlow.PhantomJS.js" />
+    <None Include="PhantomTestFlow.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>PhantomTestFlow.js</LastGenOutput>
+    </None>
     <None Include="tools\init.ps1" />
     <None Include="tools\install.ps1" />
     <None Include="tools\uninstall.ps1" />
@@ -70,6 +79,9 @@
   <ItemGroup>
     <Content Include="src\AtomPrototype.js" />
     <Content Include="src\TestFlowEngine.js" />
+  </ItemGroup>
+  <ItemGroup>
+    <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

@@ -13,8 +13,9 @@ sample.test.js
         "steps":[
           [ "configure", { "ignore-ajax": "regex paths to ignore" } ],
           [ "navigate", "http://google.com" ],
-          [ "wait", "till js expression returns true", "timeout-default-60s (1 min)", "sleep 1s default"],
-          [ "type", "test-flow", "#query-box"],
+          [ "wait-till", "till js expression returns true", "timeout-default-60s (1 min)", "sleep 1s default"],
+          [ "type", "#query-box", "typesomething"],
+          [ "set-value", "#query-box", "set-value"],
           [ "click", "#search-button"],
           [ "assert", "#page-results", { 'value >': 0 } ],
           [ "test", "javascript expression should return true", "error message" ]
