@@ -20,7 +20,7 @@ namespace TestFlow
             string exeArgs =
                 "--disk-cache=true " +
                 "--cookies-file=" + dir.FullName + "\\cookies.txt " +
-                dir.Parent.Parent.Parent.Parent.FullName + "\\test-flow-phantom.js " + 
+                dir.Parent.Parent.Parent.FullName + "\\test-flow-phantom.js " + 
                 dir.Parent.Parent.FullName + "\\AtomsWebsiteCheck.testflow.json";
 
 

@@ -51,6 +51,10 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Include="packages.config" />
+    <None Include="PhantomTestFlow.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>PhantomTestFlow1.js</LastGenOutput>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <Content Include="..\packages\PhantomJS.2.0.0\tools\phantomjs\phantomjs.exe">
@@ -60,6 +64,20 @@
     <Content Include="phantomjs-license.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <Content Include="PhantomTestFlow.js" />
+    <Content Include="PhantomTestFlow1.js">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>PhantomTestFlow.tt</DependentUpon>
+    </Content>
+    <Content Include="src\AtomEnumerator.js" />
+    <Content Include="src\AtomPrototype.js" />
+    <Content Include="src\EventDispatcher.js" />
+    <Content Include="src\phantomjs\TestFlow.PhantomJS.js" />
+    <Content Include="src\TestFlowEngine.js" />
+  </ItemGroup>
+  <ItemGroup>
+    <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
