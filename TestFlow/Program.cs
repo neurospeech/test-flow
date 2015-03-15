@@ -20,18 +20,31 @@ namespace TestFlow
             string exeArgs =
                 "--disk-cache=true " +
                 "--cookies-file=" + dir.FullName + "\\cookies.txt " +
-                dir.Parent.Parent.Parent.FullName + "\\test-flow-phantom.js " + 
-                dir.Parent.Parent.FullName + "\\AtomsWebsiteCheck.testflow.json";
+                dir.Parent.FullName + "\\test-flow-phantom.js " + 
+                dir.Parent.FullName + "\\TestFlow\\AtomsWebsiteCheck.testflow.json 3245";
 
 
             ProcessHelper.Execute(exe, exeArgs,
-                o => Console.WriteLine(o), 
+                o => {
+                    LoadBrowser();
+                    Console.WriteLine(o); 
+                },
                 e => Console.Error.WriteLine(e));
 
 
             Console.ReadLine();
             
 
+        }
+
+
+        static bool browserLoaded = false;
+        private static void LoadBrowser()
+        {
+            if (browserLoaded)
+                return;
+            Process.Start("http://localhost:3245/result.html");
+            browserLoaded = true;
         }
     }
 }
