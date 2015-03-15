@@ -15,7 +15,8 @@ var AtomEnumerator = window.AtomEnumerator = (function () {
         },
         methods: {
             next: function () {
-                return (this.i++) < this.items.length;
+                this.i = this.i + 1;
+                return this.i < this.items.length;
             },
             current: function () {
                 return this.items[this.i];

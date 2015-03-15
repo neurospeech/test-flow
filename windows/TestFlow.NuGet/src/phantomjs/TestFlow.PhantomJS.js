@@ -4,6 +4,11 @@
 /// <reference path="../TestFlowEngine.js" />
 
 var TestFlowPhantomJS = window.TestFlowPhantomJS = (function (window, base) {
+
+
+    var system = require('system');
+    var fs = require('fs');
+
     return createClass({
         name: "TestFlowPhantomJS",
         base: base,
@@ -11,7 +16,6 @@ var TestFlowPhantomJS = window.TestFlowPhantomJS = (function (window, base) {
 
             this._page = require('webpage').create();
 
-            
 
         },
         methods: {
@@ -19,9 +23,56 @@ var TestFlowPhantomJS = window.TestFlowPhantomJS = (function (window, base) {
             get_page: function () {
                 return this._page;
             },
+            init: function () {
 
-            configure: function () {
-                base.configure.apply(this, arguments);
+                var self = this;
+                
+                this._page.onResourceRequested = function (e) {
+                    self.fire('request', e);
+                };
+
+                this._page.onResourceTimeout = function (e) {
+                    self.fire('requestTimeout', e);
+                };
+                this._page.onResourceReceived = function (e) {
+                    self.fire('response', e);
+                };
+                this._page.onResourceError = function (e) {
+                    self.fire('responseError', e);
+                };
+
+
+                this.on('request', function (e) {
+                    self.pushWait();
+                    self.updateRequest(e.url, e.id, 'load');
+                });
+                this.on('requestTimeout', function (e) {
+                    self.popWait();
+                    self.updateRequest(e.url, e.id, 'timeout');
+                });
+                this.on('responseError', function (e) {
+                    self.popWait();
+                    self.updateRequest(e.url, e.id, 'error');
+                });
+                this.on('response', function (e) {
+                    self.updateRequest(e.url, e.id, e.stage);
+                    // ignore redirect url
+                    if (e.redirectURL) {
+                        return;
+                    }
+                    // ignore chunks
+                    if (e.stage === 'end') {
+                        self.popWait();
+                    }
+                });
+                this.on('error', function () {
+                    //setTimeout(function () {
+                    //    phantom.exit();
+                    //}, 1000);
+                });
+                this.on('done', function () {
+                    phantom.exit();
+                });
             },
             navigate: function (action, url) {
                 this.pushWait();
@@ -35,7 +86,9 @@ var TestFlowPhantomJS = window.TestFlowPhantomJS = (function (window, base) {
                 });
             },
             evalJS: function (exp) {
-                return this._page.evaluateJavaScript(exp);
+                return this._page.evaluate(function (e) {
+                    return eval(e);
+                }, exp);
             },
             type: function (action, selector, text) {
 
@@ -50,6 +103,15 @@ var TestFlowPhantomJS = window.TestFlowPhantomJS = (function (window, base) {
                     var e = document.querySelector(s);
                     e.value = v;
                 }, selector, value);
+            },
+            load: function () {
+
+
+                var inputTest = system.args[1];
+
+                this.set_test(JSON.parse(fs.read(inputTest)));
+
+
             }
         }
     });

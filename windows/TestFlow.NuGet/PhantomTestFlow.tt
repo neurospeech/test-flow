@@ -11,6 +11,11 @@
 <#@ import namespace="System.Xml.Linq" #>
 <#@ import namespace="System.Xaml" #>
 <#@ import namespace="System.Text" #>
+<#
+
+    Host.SetOutputEncoding(System.Text.Encoding.UTF8,true);
+
+ #>
 /*
 
 The MIT License (MIT)
@@ -61,4 +66,22 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SO
     WriteFile(templateDirectory + "\\phantomjs\\TestFlow.PhantomJS.js");
 
 #>
+
+    window.currentTestEngine = new TestFlowPhantomJS();
+    window.currentTestEngine.run();
+
 })(window);
+
+<#
+
+    var td = new System.IO.DirectoryInfo(templateDirectory);
+    var copy = td.Parent.Parent.Parent.FullName + "\\test-flow-phantom.js";
+
+    if(System.IO.File.Exists(copy)){
+        System.IO.File.Delete(copy);
+    }
+
+    System.IO.File.WriteAllText(copy,GenerationEnvironment.ToString());
+    
+
+#>

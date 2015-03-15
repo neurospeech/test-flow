@@ -31,13 +31,14 @@ var EventDispatcher = (function () {
                     }
                 }
             },
-            fire: function (name, e) {
+            fire: function (name, arg) {
+                //console.log('fire(' + name + ',' + e + ')');
                 var hlist = this.eventHandlers[name];
                 if (hlist) {
                     var e = hlist.enumerator();
                     while (e.next()) {
                         var h = e.current();
-                        h.call(this, e);
+                        h.method.call(this, arg);
                     }
                 }
             }

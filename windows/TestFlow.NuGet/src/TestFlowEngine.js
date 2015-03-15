@@ -20,17 +20,104 @@ var TestFlowEngine = window.TestFlowEngine = (function (base) {
         },
         properties: {
             steps: null,
-            config: null,
+            network: [],
+            config: {
+                debug: 1
+            },
             status: 'ready',
+            test: null,
+            step: null,
+            stepIndex:-1,
             error: ''
         },
         methods: {
-            set_status: function (v) {
+            debugLog: function (v, level) {
+                var d = this._config.debug;
+                if (d) {
+                    if (level) {
+                        if (level == d) {
+                            console.log(v);
+                        }
+                    } else {
+                        console.log(v);
+                    }
+                }
+            },
+            set_test: function (v) {
+                this._test = v;
+                if (v.config) {
+                    this.configure(v.config);
+                }
+                this.set_network([]);
+                this._testEnumerator = new AtomEnumerator(v.steps);
+            },
+            updateRequest: function (url, id, stage) {
+                this.debugLog(this._wait + " :" + stage + ':' + url, 2);
+                var a = this._network;
+                var r = a.firstOrDefault(function (i) { return i.url == url; });
+                if (!r) {
+                    r = { url: url, id: id };
+                    a.push(r);
+                }
+                r.stage = stage;
+                r.time = (new Date()).getTime();
+            },
+            get_step: function () {
+                return this._testEnumerator.current();
+            },
+            get_stepIndex: function () {
+                return this._testEnumerator.currentIndex();
+            },
+            triggerTest: function () {
+                if (!this._runNextHandler) {
+                    var self = this;
+                    this._runNextHandler = function () {
+                        self.runNext();
+                    };
+                }
+                setTimeout(this._runNextHandler, 100);
+            },
+            runNext: function () {
+                if (this._wait) {
+                    this.triggerTest();
+                    return;
+                }
+                if (this._testEnumerator.next()) {
+                    var s = this.get_step();
+                    var action = s[0];
+                    this.debugLog('executing step ' + JSON.stringify(s));
+                    var f = this.actionMap[action];
+                    if (!f) {
+                        this.set_status('error', 'step ' + action + ' not found');
+                        return;
+                    }
+                    this[f].apply(this, s);
+                    this.triggerTest();
+
+                } else {
+                    // steps finished...
+                    this.set_status('done');
+                }
+
+            },
+
+            set_status: function (v,msg) {
                 this._status = v;
                 if (/fail|error/i.test(v)) {
+                    this._wait = -1;
                     v = "error";
+                    if (msg) {
+                        this.set_error(msg);
+                    }
                 }
-                this.fire(v);
+                this.fire(v, msg);
+            },
+            init: function () {
+                this.on('error', function () {
+                    console.error(this.get_error())
+                });
+            },
+            load: function () {
             },
             pushWait: function () {
                 this._wait++;
@@ -38,7 +125,7 @@ var TestFlowEngine = window.TestFlowEngine = (function (base) {
             popWait: function () {
                 this._wait--;
             },
-            configure: function (action, c) {
+            configure: function (c) {
                 var conf = this._config = this._config || {};
                 for (var i in c) {
                     conf[i] = c[i];
@@ -78,15 +165,18 @@ var TestFlowEngine = window.TestFlowEngine = (function (base) {
             },
             assert: function (action, exp, msg) {
                 if (!this.evalJS(exp)) {
-                    this.set_error(msg);
-                    this.set_status('assert-failed');
+                    this.set_status('fail', 'failed step: ' + msg);
+                } else {
+                    this.debugLog('assert success');
                 }
             },
             setElementValue: function (action, element, value) {
 
             },
             run: function () {
-
+                this.init();
+                this.load();
+                this.triggerTest();
             }
         }
     });
