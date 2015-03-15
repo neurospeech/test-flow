@@ -1,6 +1,66 @@
 ﻿/// <reference path="AtomPrototype.js" />
 /// <reference path="EventDispatcher.js" />
 
+var mimeTypes = {
+    html: "text/html",
+    htm: "text/html",
+    css: "text/css",
+    js: "text/javascript",
+    jpg: "image/jpeg",
+    gif: "image/gif",
+    png: "image/png"
+};
+
+
+var FileInfo = function (p) {
+    var s = FileInfo.separator;
+    if (p.indexOf(s) == -1) {
+        s = s == '\\' ? '/' : '\\';
+    }
+    this.pathList = p.split(s);
+}
+
+FileInfo.separator = "/";
+
+FileInfo.prototype = {
+    parent: function () {
+        var r = [];
+        var ae = new AtomEnumerator(this.pathList);
+        var oneLess = this.pathList.length - 1;
+        while (ae.next()) {
+            if (ae.currentIndex() < oneLess) {
+                r.push(ae.current());
+            }
+        }
+        return new FileInfo(r.join(FileInfo.separator));
+    },
+    append: function (v) {
+        return new FileInfo(this.toString() + FileInfo.separator + v);
+    },
+    extension: function () {
+        var last = this.pathList[this.pathList.length - 1];
+        if (!last)
+            return "html";
+        last = (last.split('.')).pop();
+        return last;
+    },
+    toString: function () {
+        return this.pathList.join(FileInfo.separator);
+    },
+};
+
+var UrlInfo = function (p) {
+    var i = p.indexOf('?');
+    if (i !== -1) {
+        this.queryString = p.substr(i + 1);
+        this.pathQuery = p.substr(0, i);
+    } else {
+        this.pathQuery = p;
+    }
+
+    this.pathQuery = (new FileInfo(this.pathQuery)).toString();
+}
+
 var TestFlowEngine = window.TestFlowEngine = (function (base) {
     return createClass({
         name: "TestFlowEngine",
@@ -22,7 +82,8 @@ var TestFlowEngine = window.TestFlowEngine = (function (base) {
             steps: null,
             network: [],
             config: {
-                debug: 1
+                debug: 1,
+                port: 3245
             },
             status: 'ready',
             test: null,

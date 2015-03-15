@@ -6,8 +6,14 @@
 var TestFlowPhantomJS = window.TestFlowPhantomJS = (function (window, base) {
 
 
+
     var system = require('system');
     var fs = require('fs');
+
+
+    FileInfo.separator = fs.separator;
+
+    //console.log(fs.workingDirectory);
 
     return createClass({
         name: "TestFlowPhantomJS",
@@ -110,10 +116,56 @@ var TestFlowPhantomJS = window.TestFlowPhantomJS = (function (window, base) {
 
 
                 var inputTest = system.args[1];
+                this._config.port = system.args[2] || this._config.port;
+                var self = this;
+
+                var webserver = require('webserver');
+
+                var s = webserver.create().listen(this._config.port, {}, function (rin, rout) {
+                    try {
+                        self.serverGet(rin, rout);
+                    } catch (error) {
+                        self.debugLog(error);
+                    }
+                    })
+                if (s) {
+                    this.debugLog('web server started running on ' + this._config.port);
+                }
 
                 this.set_test(JSON.parse(fs.read(inputTest)));
 
 
+            },
+            serverGet: function (request, response) {
+                var url = request.url;
+
+                this.debugLog(url);
+
+                if (url == '/') {
+                    url = '/result.html';
+                }
+                if (/\.(html|htm|css|jpg|gif|map|js|png)/i.test(url)) {
+                    var path = new FileInfo(fs.workingDirectory);
+                    path = path.parent().append("web");
+
+
+                    var uri = new UrlInfo(url.substr(1));
+
+                    var filePath = path.append(uri.pathQuery);
+
+                    var ext = filePath.extension();
+
+                    response.statusCode = 200;
+                    response.headers = {
+                        'Cache': 'no-cache',
+                        'Content-Type': (mimeTypes[ext] || 'text/html')
+                    };
+                    response.setEncoding('binary');
+                    response.write(fs.read(filePath.toString()));
+                    response.close();
+                } else {
+                    this.debugLog('invalid url: ' + url);
+                }
             }
         }
     });
