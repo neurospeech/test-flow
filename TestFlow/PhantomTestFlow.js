@@ -599,8 +599,10 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SO
 /*Line 119 - TestFlow.PhantomJS.js */    });
 /*Line 120 - TestFlow.PhantomJS.js */})(window,TestFlowEngine.prototype);
 
+
     window.currentTestEngine = new TestFlowPhantomJS();
     window.currentTestEngine.run();
 
 })(window);
+
 

@@ -10,13 +10,12 @@
 <#@ import namespace="System.Data" #>
 <#@ import namespace="System.Xml.Linq" #>
 <#@ import namespace="System.Xaml" #>
-<#@ import namespace="System.Text" #>
-<#
+<#@ import namespace="System.Text" #><#
 
     Host.SetOutputEncoding(System.Text.Encoding.UTF8,true);
+    GenerationEnvironment.Clear();
 
- #>
-/*
+ #>/*
 
 The MIT License (MIT)
 
@@ -81,7 +80,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SO
         System.IO.File.Delete(copy);
     }
 
-    System.IO.File.WriteAllText(copy,GenerationEnvironment.ToString());
+    System.IO.File.WriteAllText(copy,GenerationEnvironment.ToString(), System.Text.Encoding.UTF8);
     
 
 #>
