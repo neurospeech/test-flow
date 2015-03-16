@@ -76,7 +76,8 @@ var TestFlowEngine = window.TestFlowEngine = (function (base) {
                 "click": "click",
                 "assert": "assert",
                 "set-value": "setElementValue",
-                "test":"importTest"
+                "test": "importTest",
+                "upload": "upload"
             };
             this.stack = [];
             this.results = [];
@@ -285,6 +286,8 @@ var TestFlowEngine = window.TestFlowEngine = (function (base) {
             },
             setElementValue: function (action, element, value) {
 
+            },
+            upload: function (action, element, value) {
             },
             run: function () {
                 this.init();

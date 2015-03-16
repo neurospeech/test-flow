@@ -158,3 +158,5 @@ $RECYCLE.BIN/
 .DS_Store
 /windows/packages
 /packages
+
+result-*.json

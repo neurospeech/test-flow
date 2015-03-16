@@ -119,8 +119,12 @@ var TestFlowPhantomJS = window.TestFlowPhantomJS = (function (window, base) {
             },
             keyPress: function (action, selector, keys) {
             },
-            click: function (action, selector) {
+            click: function (action, args) {
+                if (args.constructor === String) {
 
+                } else {
+
+                }
             },
             setElementValue: function (action, selector, value) {
                 this._page.evaluate(function (s, v) {
@@ -128,10 +132,14 @@ var TestFlowPhantomJS = window.TestFlowPhantomJS = (function (window, base) {
                     e.value = v;
                 }, selector, value);
             },
+            upload: function (action, selector, value) {
+                this._page.uploadFile(selector, value);
+            },
             load: function () {
 
 
                 var inputTest = system.args[1];
+
                 //this._config.port = system.args[2] || this._config.port;
                 //var self = this;
 

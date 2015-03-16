@@ -17,8 +17,7 @@ sample.test.js
           [ "type", "#query-box", "typesomething"],
           [ "set-value", "#query-box", "set-value"],
           [ "click", "#search-button"],
-          [ "assert", "#page-results", { 'value >': 0 } ],
-          [ "test", "javascript expression should return true", "error message" ]
+          [ "assert", "javascript expression should return true", "description" ]
         ]
     }
 
@@ -99,16 +98,19 @@ Example,
 
 ## Click
 Simulates mouse click, however, it is also tested that the element to be clicked is visible in the view port, otherwise an error is thrown.
+If you specify coordinates, then it will simulate click on that specified coordinates.
 
 Example,
 
     [ "click", "#search-button"]
+    // or
+    [ "click", { x: 200, y: 200}]
 
 ## Assert
-Finally an assertion check command, which will raise an error specified given error message if expression returns false.
+Finally an assertion check command, which will raise an error if expression returns false.
 
-    [ "assert", "javascript expression should return true", "error message" ]
+    [ "assert", "javascript expression should return true", "description" ]
 
 Example,
 
-    [ "assert", "window.$", "jQuery did not load successfully." ]
+    [ "assert", "window.$", "load jQuery." ]
