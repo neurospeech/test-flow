@@ -75,8 +75,11 @@ var TestFlowEngine = window.TestFlowEngine = (function (base) {
                 "key-press": "keyPress",
                 "click": "click",
                 "assert": "assert",
-                "set-value": "setElementValue"
+                "set-value": "setElementValue",
+                "test":"importTest"
             };
+            this.stack = [];
+            this.results = [];
         },
         properties: {
             steps: null,
@@ -87,9 +90,6 @@ var TestFlowEngine = window.TestFlowEngine = (function (base) {
             },
             status: 'ready',
             test: null,
-            step: null,
-            stepIndex: -1,
-            successSteps:[],
             errorDetail: ''
         },
         methods: {
@@ -110,26 +110,46 @@ var TestFlowEngine = window.TestFlowEngine = (function (base) {
                 if (v.config) {
                     this.configure(v.config);
                 }
-                this.set_network([]);
-                this.set_successSteps([]);
-                this._testEnumerator = new AtomEnumerator(v.steps);
+                if (v.index === undefined) {
+                    v.network = [];
+                    var i = 0;
+                    v.steps = v.steps.map(function (item) {
+                        return { id: i++, action: item[0], step: item };
+                    });
+                    v.index = -1;
+
+                    if (!v.isChild) {
+                        this.results.push(v);
+                    }
+                }
             },
-            updateRequest: function (url, id, stage) {
+            updateRequest: function (url, id, stage, rurl) {
                 this.debugLog(this._wait + " :" + stage + ':' + url, 2);
-                var a = this._network;
+                var a = this._test.network;
                 var r = a.firstOrDefault(function (i) { return i.url == url; });
                 if (!r) {
-                    r = { url: url, id: id };
+                    r = { url: url, id: id, states:[] };
                     a.push(r);
                 }
                 r.stage = stage;
                 r.time = (new Date()).getTime();
+                var state = {
+                    stage: stage,
+                    time: r.time
+                };
+                if (rurl) {
+                    state.redirectUrl = rurl;
+                }
+                r.states.push(state);
+                this.saveResults();
             },
             get_step: function () {
-                return this._testEnumerator.current();
+                return this._test.steps[this._test.index];
             },
-            get_stepIndex: function () {
-                return this._testEnumerator.currentIndex();
+            get_nextStep: function () {
+                var test = this._test;
+                test.index++;
+                return test.index < test.steps.length;
             },
             triggerTest: function () {
                 if (!this._runNextHandler) {
@@ -148,21 +168,31 @@ var TestFlowEngine = window.TestFlowEngine = (function (base) {
 
                 this.updateStep();
 
-                if (this._testEnumerator.next()) {
+                if (this.get_nextStep()) {
                     var s = this.get_step();
-                    var action = s[0];
-                    this.debugLog('executing step ' + JSON.stringify(s),2);
+                    var action = s.action;
+                    this.debugLog('executing step ' + JSON.stringify(s.step),2);
                     var f = this.actionMap[action];
                     if (!f) {
                         this.set_status('error', 'step ' + action + ' not found');
                         return;
                     }
-                    this[f].apply(this, s);
+                    this[f].apply(this, s.step);
+                    this.saveResults();
                     this.triggerTest();
 
                 } else {
+                    this.debugLog('tests finished');
                     // steps finished...
-                    this.set_status('done');
+
+                    // pop tests...
+                    if (this.stack.length) {
+                        var t = this.stack.pop();
+                        this.set_test(t);
+                        this.triggerTest();
+                    } else {
+                        this.set_status('done');
+                    }
                 }
 
             },
@@ -170,12 +200,13 @@ var TestFlowEngine = window.TestFlowEngine = (function (base) {
                 var prevStep = this.get_step();
                 if (!prevStep)
                     return;
-                this.debugLog('success :) ' + JSON.stringify(prevStep));
-                var s = this.get_successSteps();
-                s.push({
-                    step: prevStep,
-                    time: (new Date()).getTime()            
-                });
+                this.debugLog('success :) ' + JSON.stringify(prevStep.step));
+                prevStep.status = "success";
+                prevStep.time = (new Date()).getTime();
+
+                this.saveResults();
+            },
+            importTest: function (action, name) {
             },
             set_status: function (v,msg) {
                 this._status = v;
@@ -185,6 +216,14 @@ var TestFlowEngine = window.TestFlowEngine = (function (base) {
                     if (msg) {
                         this.set_errorDetail(msg);
                     }
+
+                    var step = this.get_step();
+                    if (step) {
+                        step.status = "failed";
+                        step.details = this.get_errorDetail();
+                    }
+                } else {
+                    this.set_errorDetail("");
                 }
                 this.fire(v, msg);
             },
@@ -241,7 +280,7 @@ var TestFlowEngine = window.TestFlowEngine = (function (base) {
             },
             assert: function (action, exp, msg) {
                 if (!this.evalJS(exp)) {
-                    this.set_status('fail', 'failed :( '  + JSON.stringify(this.get_step()));
+                    this.set_status('fail', 'failed :( '  + JSON.stringify(this.get_step().step));
                 } 
             },
             setElementValue: function (action, element, value) {
@@ -251,6 +290,8 @@ var TestFlowEngine = window.TestFlowEngine = (function (base) {
                 this.init();
                 this.load();
                 this.triggerTest();
+            },
+            saveResults: function () {
             }
         }
     });

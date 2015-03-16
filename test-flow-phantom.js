@@ -359,21 +359,21 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SO
 /*Line 75 - TestFlowEngine.js */                "key-press": "keyPress",
 /*Line 76 - TestFlowEngine.js */                "click": "click",
 /*Line 77 - TestFlowEngine.js */                "assert": "assert",
-/*Line 78 - TestFlowEngine.js */                "set-value": "setElementValue"
-/*Line 79 - TestFlowEngine.js */            };
-/*Line 80 - TestFlowEngine.js */        },
-/*Line 81 - TestFlowEngine.js */        properties: {
-/*Line 82 - TestFlowEngine.js */            steps: null,
-/*Line 83 - TestFlowEngine.js */            network: [],
-/*Line 84 - TestFlowEngine.js */            config: {
-/*Line 85 - TestFlowEngine.js */                debug: 1,
-/*Line 86 - TestFlowEngine.js */                port: 3245
-/*Line 87 - TestFlowEngine.js */            },
-/*Line 88 - TestFlowEngine.js */            status: 'ready',
-/*Line 89 - TestFlowEngine.js */            test: null,
-/*Line 90 - TestFlowEngine.js */            step: null,
-/*Line 91 - TestFlowEngine.js */            stepIndex: -1,
-/*Line 92 - TestFlowEngine.js */            successSteps:[],
+/*Line 78 - TestFlowEngine.js */                "set-value": "setElementValue",
+/*Line 79 - TestFlowEngine.js */                "test":"importTest"
+/*Line 80 - TestFlowEngine.js */            };
+/*Line 81 - TestFlowEngine.js */            this.stack = [];
+/*Line 82 - TestFlowEngine.js */            this.results = [];
+/*Line 83 - TestFlowEngine.js */        },
+/*Line 84 - TestFlowEngine.js */        properties: {
+/*Line 85 - TestFlowEngine.js */            steps: null,
+/*Line 86 - TestFlowEngine.js */            network: [],
+/*Line 87 - TestFlowEngine.js */            config: {
+/*Line 88 - TestFlowEngine.js */                debug: 1,
+/*Line 89 - TestFlowEngine.js */                port: 3245
+/*Line 90 - TestFlowEngine.js */            },
+/*Line 91 - TestFlowEngine.js */            status: 'ready',
+/*Line 92 - TestFlowEngine.js */            test: null,
 /*Line 93 - TestFlowEngine.js */            errorDetail: ''
 /*Line 94 - TestFlowEngine.js */        },
 /*Line 95 - TestFlowEngine.js */        methods: {
@@ -394,151 +394,192 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SO
 /*Line 110 - TestFlowEngine.js */                if (v.config) {
 /*Line 111 - TestFlowEngine.js */                    this.configure(v.config);
 /*Line 112 - TestFlowEngine.js */                }
-/*Line 113 - TestFlowEngine.js */                this.set_network([]);
-/*Line 114 - TestFlowEngine.js */                this.set_successSteps([]);
-/*Line 115 - TestFlowEngine.js */                this._testEnumerator = new AtomEnumerator(v.steps);
-/*Line 116 - TestFlowEngine.js */            },
-/*Line 117 - TestFlowEngine.js */            updateRequest: function (url, id, stage) {
-/*Line 118 - TestFlowEngine.js */                this.debugLog(this._wait + " :" + stage + ':' + url, 2);
-/*Line 119 - TestFlowEngine.js */                var a = this._network;
-/*Line 120 - TestFlowEngine.js */                var r = a.firstOrDefault(function (i) { return i.url == url; });
-/*Line 121 - TestFlowEngine.js */                if (!r) {
-/*Line 122 - TestFlowEngine.js */                    r = { url: url, id: id };
-/*Line 123 - TestFlowEngine.js */                    a.push(r);
+/*Line 113 - TestFlowEngine.js */                if (v.index === undefined) {
+/*Line 114 - TestFlowEngine.js */                    v.network = [];
+/*Line 115 - TestFlowEngine.js */                    var i = 0;
+/*Line 116 - TestFlowEngine.js */                    v.steps = v.steps.map(function (item) {
+/*Line 117 - TestFlowEngine.js */                        return { id: i++, action: item[0], step: item };
+/*Line 118 - TestFlowEngine.js */                    });
+/*Line 119 - TestFlowEngine.js */                    v.index = -1;
+
+/*Line 121 - TestFlowEngine.js */                    if (!v.isChild) {
+/*Line 122 - TestFlowEngine.js */                        this.results.push(v);
+/*Line 123 - TestFlowEngine.js */                    }
 /*Line 124 - TestFlowEngine.js */                }
-/*Line 125 - TestFlowEngine.js */                r.stage = stage;
-/*Line 126 - TestFlowEngine.js */                r.time = (new Date()).getTime();
-/*Line 127 - TestFlowEngine.js */            },
-/*Line 128 - TestFlowEngine.js */            get_step: function () {
-/*Line 129 - TestFlowEngine.js */                return this._testEnumerator.current();
-/*Line 130 - TestFlowEngine.js */            },
-/*Line 131 - TestFlowEngine.js */            get_stepIndex: function () {
-/*Line 132 - TestFlowEngine.js */                return this._testEnumerator.currentIndex();
-/*Line 133 - TestFlowEngine.js */            },
-/*Line 134 - TestFlowEngine.js */            triggerTest: function () {
-/*Line 135 - TestFlowEngine.js */                if (!this._runNextHandler) {
-/*Line 136 - TestFlowEngine.js */                    var self = this;
-/*Line 137 - TestFlowEngine.js */                    this._runNextHandler = function () {
-/*Line 138 - TestFlowEngine.js */                        self.runNext();
-/*Line 139 - TestFlowEngine.js */                    };
-/*Line 140 - TestFlowEngine.js */                }
-/*Line 141 - TestFlowEngine.js */                setTimeout(this._runNextHandler, 100);
-/*Line 142 - TestFlowEngine.js */            },
-/*Line 143 - TestFlowEngine.js */            runNext: function () {
-/*Line 144 - TestFlowEngine.js */                if (this._wait) {
-/*Line 145 - TestFlowEngine.js */                    this.triggerTest();
-/*Line 146 - TestFlowEngine.js */                    return;
-/*Line 147 - TestFlowEngine.js */                }
+/*Line 125 - TestFlowEngine.js */            },
+/*Line 126 - TestFlowEngine.js */            updateRequest: function (url, id, stage, rurl) {
+/*Line 127 - TestFlowEngine.js */                this.debugLog(this._wait + " :" + stage + ':' + url, 2);
+/*Line 128 - TestFlowEngine.js */                var a = this._test.network;
+/*Line 129 - TestFlowEngine.js */                var r = a.firstOrDefault(function (i) { return i.url == url; });
+/*Line 130 - TestFlowEngine.js */                if (!r) {
+/*Line 131 - TestFlowEngine.js */                    r = { url: url, id: id, states:[] };
+/*Line 132 - TestFlowEngine.js */                    a.push(r);
+/*Line 133 - TestFlowEngine.js */                }
+/*Line 134 - TestFlowEngine.js */                r.stage = stage;
+/*Line 135 - TestFlowEngine.js */                r.time = (new Date()).getTime();
+/*Line 136 - TestFlowEngine.js */                var state = {
+/*Line 137 - TestFlowEngine.js */                    stage: stage,
+/*Line 138 - TestFlowEngine.js */                    time: r.time
+/*Line 139 - TestFlowEngine.js */                };
+/*Line 140 - TestFlowEngine.js */                if (rurl) {
+/*Line 141 - TestFlowEngine.js */                    state.redirectUrl = rurl;
+/*Line 142 - TestFlowEngine.js */                }
+/*Line 143 - TestFlowEngine.js */                r.states.push(state);
+/*Line 144 - TestFlowEngine.js */                this.saveResults();
+/*Line 145 - TestFlowEngine.js */            },
+/*Line 146 - TestFlowEngine.js */            get_step: function () {
+/*Line 147 - TestFlowEngine.js */                return this._test.steps[this._test.index];
+/*Line 148 - TestFlowEngine.js */            },
+/*Line 149 - TestFlowEngine.js */            get_nextStep: function () {
+/*Line 150 - TestFlowEngine.js */                var test = this._test;
+/*Line 151 - TestFlowEngine.js */                test.index++;
+/*Line 152 - TestFlowEngine.js */                return test.index < test.steps.length;
+/*Line 153 - TestFlowEngine.js */            },
+/*Line 154 - TestFlowEngine.js */            triggerTest: function () {
+/*Line 155 - TestFlowEngine.js */                if (!this._runNextHandler) {
+/*Line 156 - TestFlowEngine.js */                    var self = this;
+/*Line 157 - TestFlowEngine.js */                    this._runNextHandler = function () {
+/*Line 158 - TestFlowEngine.js */                        self.runNext();
+/*Line 159 - TestFlowEngine.js */                    };
+/*Line 160 - TestFlowEngine.js */                }
+/*Line 161 - TestFlowEngine.js */                setTimeout(this._runNextHandler, 100);
+/*Line 162 - TestFlowEngine.js */            },
+/*Line 163 - TestFlowEngine.js */            runNext: function () {
+/*Line 164 - TestFlowEngine.js */                if (this._wait) {
+/*Line 165 - TestFlowEngine.js */                    this.triggerTest();
+/*Line 166 - TestFlowEngine.js */                    return;
+/*Line 167 - TestFlowEngine.js */                }
 
-/*Line 149 - TestFlowEngine.js */                this.updateStep();
+/*Line 169 - TestFlowEngine.js */                this.updateStep();
 
-/*Line 151 - TestFlowEngine.js */                if (this._testEnumerator.next()) {
-/*Line 152 - TestFlowEngine.js */                    var s = this.get_step();
-/*Line 153 - TestFlowEngine.js */                    var action = s[0];
-/*Line 154 - TestFlowEngine.js */                    this.debugLog('executing step ' + JSON.stringify(s),2);
-/*Line 155 - TestFlowEngine.js */                    var f = this.actionMap[action];
-/*Line 156 - TestFlowEngine.js */                    if (!f) {
-/*Line 157 - TestFlowEngine.js */                        this.set_status('error', 'step ' + action + ' not found');
-/*Line 158 - TestFlowEngine.js */                        return;
-/*Line 159 - TestFlowEngine.js */                    }
-/*Line 160 - TestFlowEngine.js */                    this[f].apply(this, s);
-/*Line 161 - TestFlowEngine.js */                    this.triggerTest();
+/*Line 171 - TestFlowEngine.js */                if (this.get_nextStep()) {
+/*Line 172 - TestFlowEngine.js */                    var s = this.get_step();
+/*Line 173 - TestFlowEngine.js */                    var action = s.action;
+/*Line 174 - TestFlowEngine.js */                    this.debugLog('executing step ' + JSON.stringify(s.step),2);
+/*Line 175 - TestFlowEngine.js */                    var f = this.actionMap[action];
+/*Line 176 - TestFlowEngine.js */                    if (!f) {
+/*Line 177 - TestFlowEngine.js */                        this.set_status('error', 'step ' + action + ' not found');
+/*Line 178 - TestFlowEngine.js */                        return;
+/*Line 179 - TestFlowEngine.js */                    }
+/*Line 180 - TestFlowEngine.js */                    this[f].apply(this, s.step);
+/*Line 181 - TestFlowEngine.js */                    this.saveResults();
+/*Line 182 - TestFlowEngine.js */                    this.triggerTest();
 
-/*Line 163 - TestFlowEngine.js */                } else {
-/*Line 164 - TestFlowEngine.js */                    // steps finished...
-/*Line 165 - TestFlowEngine.js */                    this.set_status('done');
-/*Line 166 - TestFlowEngine.js */                }
+/*Line 184 - TestFlowEngine.js */                } else {
+/*Line 185 - TestFlowEngine.js */                    this.debugLog('tests finished');
+/*Line 186 - TestFlowEngine.js */                    // steps finished...
 
-/*Line 168 - TestFlowEngine.js */            },
-/*Line 169 - TestFlowEngine.js */            updateStep: function () {
-/*Line 170 - TestFlowEngine.js */                var prevStep = this.get_step();
-/*Line 171 - TestFlowEngine.js */                if (!prevStep)
-/*Line 172 - TestFlowEngine.js */                    return;
-/*Line 173 - TestFlowEngine.js */                this.debugLog('success :) ' + JSON.stringify(prevStep));
-/*Line 174 - TestFlowEngine.js */                var s = this.get_successSteps();
-/*Line 175 - TestFlowEngine.js */                s.push({
-/*Line 176 - TestFlowEngine.js */                    step: prevStep,
-/*Line 177 - TestFlowEngine.js */                    time: (new Date()).getTime()            
-/*Line 178 - TestFlowEngine.js */                });
-/*Line 179 - TestFlowEngine.js */            },
-/*Line 180 - TestFlowEngine.js */            set_status: function (v,msg) {
-/*Line 181 - TestFlowEngine.js */                this._status = v;
-/*Line 182 - TestFlowEngine.js */                if (/fail|error/i.test(v)) {
-/*Line 183 - TestFlowEngine.js */                    this._wait = -1;
-/*Line 184 - TestFlowEngine.js */                    v = "error";
-/*Line 185 - TestFlowEngine.js */                    if (msg) {
-/*Line 186 - TestFlowEngine.js */                        this.set_errorDetail(msg);
-/*Line 187 - TestFlowEngine.js */                    }
-/*Line 188 - TestFlowEngine.js */                }
-/*Line 189 - TestFlowEngine.js */                this.fire(v, msg);
-/*Line 190 - TestFlowEngine.js */            },
-/*Line 191 - TestFlowEngine.js */            init: function () {
-/*Line 192 - TestFlowEngine.js */                var self = this;
-/*Line 193 - TestFlowEngine.js */                this.on('error', function () {
-/*Line 194 - TestFlowEngine.js */                    console.error(self.get_errorDetail())
-/*Line 195 - TestFlowEngine.js */                });
-/*Line 196 - TestFlowEngine.js */            },
-/*Line 197 - TestFlowEngine.js */            load: function () {
+/*Line 188 - TestFlowEngine.js */                    // pop tests...
+/*Line 189 - TestFlowEngine.js */                    if (this.stack.length) {
+/*Line 190 - TestFlowEngine.js */                        var t = this.stack.pop();
+/*Line 191 - TestFlowEngine.js */                        this.set_test(t);
+/*Line 192 - TestFlowEngine.js */                        this.triggerTest();
+/*Line 193 - TestFlowEngine.js */                    } else {
+/*Line 194 - TestFlowEngine.js */                        this.set_status('done');
+/*Line 195 - TestFlowEngine.js */                    }
+/*Line 196 - TestFlowEngine.js */                }
+
 /*Line 198 - TestFlowEngine.js */            },
-/*Line 199 - TestFlowEngine.js */            pushWait: function () {
-/*Line 200 - TestFlowEngine.js */                this._wait++;
-/*Line 201 - TestFlowEngine.js */            },
-/*Line 202 - TestFlowEngine.js */            popWait: function () {
-/*Line 203 - TestFlowEngine.js */                this._wait--;
-/*Line 204 - TestFlowEngine.js */            },
-/*Line 205 - TestFlowEngine.js */            configure: function (c) {
-/*Line 206 - TestFlowEngine.js */                var conf = this._config = this._config || {};
-/*Line 207 - TestFlowEngine.js */                for (var i in c) {
-/*Line 208 - TestFlowEngine.js */                    conf[i] = c[i];
-/*Line 209 - TestFlowEngine.js */                }
-/*Line 210 - TestFlowEngine.js */                this.fire('config', c);
-/*Line 211 - TestFlowEngine.js */            },
-/*Line 212 - TestFlowEngine.js */            navigate: function (action, url) {
-/*Line 213 - TestFlowEngine.js */            },
-/*Line 214 - TestFlowEngine.js */            evalJS: function (exp) {
+/*Line 199 - TestFlowEngine.js */            updateStep: function () {
+/*Line 200 - TestFlowEngine.js */                var prevStep = this.get_step();
+/*Line 201 - TestFlowEngine.js */                if (!prevStep)
+/*Line 202 - TestFlowEngine.js */                    return;
+/*Line 203 - TestFlowEngine.js */                this.debugLog('success :) ' + JSON.stringify(prevStep.step));
+/*Line 204 - TestFlowEngine.js */                prevStep.status = "success";
+/*Line 205 - TestFlowEngine.js */                prevStep.time = (new Date()).getTime();
 
-/*Line 216 - TestFlowEngine.js */            },
-/*Line 217 - TestFlowEngine.js */            waitTill: function (action, exp, maxTimeout, interval) {
-/*Line 218 - TestFlowEngine.js */                this.pushWait();
-/*Line 219 - TestFlowEngine.js */                var self = this;
-/*Line 220 - TestFlowEngine.js */                var ms = ((maxTimeout || 60) * 1000);
-/*Line 221 - TestFlowEngine.js */                var int = ((interval || 0.1) * 1000);
-/*Line 222 - TestFlowEngine.js */                this._interval = setInterval(function () {
-/*Line 223 - TestFlowEngine.js */                    var r = self.evalJS(exp);
-/*Line 224 - TestFlowEngine.js */                    ms -= int;
-/*Line 225 - TestFlowEngine.js */                    if (ms < 0) {
-/*Line 226 - TestFlowEngine.js */                        // timeout...
-/*Line 227 - TestFlowEngine.js */                        self.set_status('failed','timeout');
-/*Line 228 - TestFlowEngine.js */                        clearInterval(self._interval);
-/*Line 229 - TestFlowEngine.js */                        self.popWait();
-/*Line 230 - TestFlowEngine.js */                    }
-/*Line 231 - TestFlowEngine.js */                    if (r) {
-/*Line 232 - TestFlowEngine.js */                        clearInterval(self._interval);
-/*Line 233 - TestFlowEngine.js */                        self.popWait();
-/*Line 234 - TestFlowEngine.js */                    }
-/*Line 235 - TestFlowEngine.js */                }, int);
-/*Line 236 - TestFlowEngine.js */            },
-/*Line 237 - TestFlowEngine.js */            type: function (action, selector, text) {
+/*Line 207 - TestFlowEngine.js */                this.saveResults();
+/*Line 208 - TestFlowEngine.js */            },
+/*Line 209 - TestFlowEngine.js */            importTest: function (action, name) {
+/*Line 210 - TestFlowEngine.js */            },
+/*Line 211 - TestFlowEngine.js */            set_status: function (v,msg) {
+/*Line 212 - TestFlowEngine.js */                this._status = v;
+/*Line 213 - TestFlowEngine.js */                if (/fail|error/i.test(v)) {
+/*Line 214 - TestFlowEngine.js */                    this._wait = -1;
+/*Line 215 - TestFlowEngine.js */                    v = "error";
+/*Line 216 - TestFlowEngine.js */                    if (msg) {
+/*Line 217 - TestFlowEngine.js */                        this.set_errorDetail(msg);
+/*Line 218 - TestFlowEngine.js */                    }
 
-/*Line 239 - TestFlowEngine.js */            },
-/*Line 240 - TestFlowEngine.js */            keyPress: function (action, selector, keys) {
-/*Line 241 - TestFlowEngine.js */            },
-/*Line 242 - TestFlowEngine.js */            assert: function (action, exp, msg) {
-/*Line 243 - TestFlowEngine.js */                if (!this.evalJS(exp)) {
-/*Line 244 - TestFlowEngine.js */                    this.set_status('fail', 'failed :( '  + JSON.stringify(this.get_step()));
-/*Line 245 - TestFlowEngine.js */                } 
-/*Line 246 - TestFlowEngine.js */            },
-/*Line 247 - TestFlowEngine.js */            setElementValue: function (action, element, value) {
+/*Line 220 - TestFlowEngine.js */                    var step = this.get_step();
+/*Line 221 - TestFlowEngine.js */                    if (step) {
+/*Line 222 - TestFlowEngine.js */                        step.status = "failed";
+/*Line 223 - TestFlowEngine.js */                        step.details = this.get_errorDetail();
+/*Line 224 - TestFlowEngine.js */                    }
+/*Line 225 - TestFlowEngine.js */                } else {
+/*Line 226 - TestFlowEngine.js */                    this.set_errorDetail("");
+/*Line 227 - TestFlowEngine.js */                }
+/*Line 228 - TestFlowEngine.js */                this.fire(v, msg);
+/*Line 229 - TestFlowEngine.js */            },
+/*Line 230 - TestFlowEngine.js */            init: function () {
+/*Line 231 - TestFlowEngine.js */                var self = this;
+/*Line 232 - TestFlowEngine.js */                this.on('error', function () {
+/*Line 233 - TestFlowEngine.js */                    console.error(self.get_errorDetail())
+/*Line 234 - TestFlowEngine.js */                });
+/*Line 235 - TestFlowEngine.js */            },
+/*Line 236 - TestFlowEngine.js */            load: function () {
+/*Line 237 - TestFlowEngine.js */            },
+/*Line 238 - TestFlowEngine.js */            pushWait: function () {
+/*Line 239 - TestFlowEngine.js */                this._wait++;
+/*Line 240 - TestFlowEngine.js */            },
+/*Line 241 - TestFlowEngine.js */            popWait: function () {
+/*Line 242 - TestFlowEngine.js */                this._wait--;
+/*Line 243 - TestFlowEngine.js */            },
+/*Line 244 - TestFlowEngine.js */            configure: function (c) {
+/*Line 245 - TestFlowEngine.js */                var conf = this._config = this._config || {};
+/*Line 246 - TestFlowEngine.js */                for (var i in c) {
+/*Line 247 - TestFlowEngine.js */                    conf[i] = c[i];
+/*Line 248 - TestFlowEngine.js */                }
+/*Line 249 - TestFlowEngine.js */                this.fire('config', c);
+/*Line 250 - TestFlowEngine.js */            },
+/*Line 251 - TestFlowEngine.js */            navigate: function (action, url) {
+/*Line 252 - TestFlowEngine.js */            },
+/*Line 253 - TestFlowEngine.js */            evalJS: function (exp) {
 
-/*Line 249 - TestFlowEngine.js */            },
-/*Line 250 - TestFlowEngine.js */            run: function () {
-/*Line 251 - TestFlowEngine.js */                this.init();
-/*Line 252 - TestFlowEngine.js */                this.load();
-/*Line 253 - TestFlowEngine.js */                this.triggerTest();
-/*Line 254 - TestFlowEngine.js */            }
-/*Line 255 - TestFlowEngine.js */        }
-/*Line 256 - TestFlowEngine.js */    });
-/*Line 257 - TestFlowEngine.js */})(EventDispatcher.prototype);
+/*Line 255 - TestFlowEngine.js */            },
+/*Line 256 - TestFlowEngine.js */            waitTill: function (action, exp, maxTimeout, interval) {
+/*Line 257 - TestFlowEngine.js */                this.pushWait();
+/*Line 258 - TestFlowEngine.js */                var self = this;
+/*Line 259 - TestFlowEngine.js */                var ms = ((maxTimeout || 60) * 1000);
+/*Line 260 - TestFlowEngine.js */                var int = ((interval || 0.1) * 1000);
+/*Line 261 - TestFlowEngine.js */                this._interval = setInterval(function () {
+/*Line 262 - TestFlowEngine.js */                    var r = self.evalJS(exp);
+/*Line 263 - TestFlowEngine.js */                    ms -= int;
+/*Line 264 - TestFlowEngine.js */                    if (ms < 0) {
+/*Line 265 - TestFlowEngine.js */                        // timeout...
+/*Line 266 - TestFlowEngine.js */                        self.set_status('failed','timeout');
+/*Line 267 - TestFlowEngine.js */                        clearInterval(self._interval);
+/*Line 268 - TestFlowEngine.js */                        self.popWait();
+/*Line 269 - TestFlowEngine.js */                    }
+/*Line 270 - TestFlowEngine.js */                    if (r) {
+/*Line 271 - TestFlowEngine.js */                        clearInterval(self._interval);
+/*Line 272 - TestFlowEngine.js */                        self.popWait();
+/*Line 273 - TestFlowEngine.js */                    }
+/*Line 274 - TestFlowEngine.js */                }, int);
+/*Line 275 - TestFlowEngine.js */            },
+/*Line 276 - TestFlowEngine.js */            type: function (action, selector, text) {
+
+/*Line 278 - TestFlowEngine.js */            },
+/*Line 279 - TestFlowEngine.js */            keyPress: function (action, selector, keys) {
+/*Line 280 - TestFlowEngine.js */            },
+/*Line 281 - TestFlowEngine.js */            assert: function (action, exp, msg) {
+/*Line 282 - TestFlowEngine.js */                if (!this.evalJS(exp)) {
+/*Line 283 - TestFlowEngine.js */                    this.set_status('fail', 'failed :( '  + JSON.stringify(this.get_step().step));
+/*Line 284 - TestFlowEngine.js */                } 
+/*Line 285 - TestFlowEngine.js */            },
+/*Line 286 - TestFlowEngine.js */            setElementValue: function (action, element, value) {
+
+/*Line 288 - TestFlowEngine.js */            },
+/*Line 289 - TestFlowEngine.js */            run: function () {
+/*Line 290 - TestFlowEngine.js */                this.init();
+/*Line 291 - TestFlowEngine.js */                this.load();
+/*Line 292 - TestFlowEngine.js */                this.triggerTest();
+/*Line 293 - TestFlowEngine.js */            },
+/*Line 294 - TestFlowEngine.js */            saveResults: function () {
+/*Line 295 - TestFlowEngine.js */            }
+/*Line 296 - TestFlowEngine.js */        }
+/*Line 297 - TestFlowEngine.js */    });
+/*Line 298 - TestFlowEngine.js */})(EventDispatcher.prototype);
 /*Line 1 - TestFlow.PhantomJS.js */
 /*Line 2 - TestFlow.PhantomJS.js */
 /*Line 3 - TestFlow.PhantomJS.js */
@@ -556,162 +597,221 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SO
 
 /*Line 16 - TestFlow.PhantomJS.js */    //console.log(fs.workingDirectory);
 
-/*Line 18 - TestFlow.PhantomJS.js */    return createClass({
-/*Line 19 - TestFlow.PhantomJS.js */        name: "TestFlowPhantomJS",
-/*Line 20 - TestFlow.PhantomJS.js */        base: base,
-/*Line 21 - TestFlow.PhantomJS.js */        start: function () {
 
-/*Line 23 - TestFlow.PhantomJS.js */            this._page = require('webpage').create();
+/*Line 19 - TestFlow.PhantomJS.js */    var resultFilePath = (function () {
+/*Line 20 - TestFlow.PhantomJS.js */        var d = (new Date());
+/*Line 21 - TestFlow.PhantomJS.js */        var fileName = d.toJSON().replace("T", "-").replace(".", "-").replace(":", "-").replace(":", "-").replace("Z", "");
+
+/*Line 23 - TestFlow.PhantomJS.js */        return (new FileInfo(fs.workingDirectory)).parent().append("result-" + fileName + ".json");
+/*Line 24 - TestFlow.PhantomJS.js */    })();
 
 
-/*Line 26 - TestFlow.PhantomJS.js */        },
-/*Line 27 - TestFlow.PhantomJS.js */        methods: {
+/*Line 27 - TestFlow.PhantomJS.js */    return createClass({
+/*Line 28 - TestFlow.PhantomJS.js */        name: "TestFlowPhantomJS",
+/*Line 29 - TestFlow.PhantomJS.js */        base: base,
+/*Line 30 - TestFlow.PhantomJS.js */        start: function () {
 
-/*Line 29 - TestFlow.PhantomJS.js */            get_page: function () {
-/*Line 30 - TestFlow.PhantomJS.js */                return this._page;
-/*Line 31 - TestFlow.PhantomJS.js */            },
-/*Line 32 - TestFlow.PhantomJS.js */            init: function () {
+/*Line 32 - TestFlow.PhantomJS.js */            this._page = require('webpage').create();
 
-/*Line 34 - TestFlow.PhantomJS.js */                var self = this;
 
-/*Line 36 - TestFlow.PhantomJS.js */                base.init.apply(this, arguments);
+/*Line 35 - TestFlow.PhantomJS.js */        },
+/*Line 36 - TestFlow.PhantomJS.js */        methods: {
+
+/*Line 38 - TestFlow.PhantomJS.js */            get_page: function () {
+/*Line 39 - TestFlow.PhantomJS.js */                return this._page;
+/*Line 40 - TestFlow.PhantomJS.js */            },
+/*Line 41 - TestFlow.PhantomJS.js */            init: function () {
+
+/*Line 43 - TestFlow.PhantomJS.js */                var self = this;
+
+/*Line 45 - TestFlow.PhantomJS.js */                base.init.apply(this, arguments);
                 
-/*Line 38 - TestFlow.PhantomJS.js */                this._page.onResourceRequested = function (e) {
-/*Line 39 - TestFlow.PhantomJS.js */                    self.fire('request', e);
-/*Line 40 - TestFlow.PhantomJS.js */                };
+/*Line 47 - TestFlow.PhantomJS.js */                this._page.onResourceRequested = function (e) {
+/*Line 48 - TestFlow.PhantomJS.js */                    self.fire('request', e);
+/*Line 49 - TestFlow.PhantomJS.js */                };
 
-/*Line 42 - TestFlow.PhantomJS.js */                this._page.onResourceTimeout = function (e) {
-/*Line 43 - TestFlow.PhantomJS.js */                    self.fire('requestTimeout', e);
-/*Line 44 - TestFlow.PhantomJS.js */                };
-/*Line 45 - TestFlow.PhantomJS.js */                this._page.onResourceReceived = function (e) {
-/*Line 46 - TestFlow.PhantomJS.js */                    self.fire('response', e);
-/*Line 47 - TestFlow.PhantomJS.js */                };
-/*Line 48 - TestFlow.PhantomJS.js */                this._page.onResourceError = function (e) {
-/*Line 49 - TestFlow.PhantomJS.js */                    self.fire('responseError', e);
-/*Line 50 - TestFlow.PhantomJS.js */                };
+/*Line 51 - TestFlow.PhantomJS.js */                this._page.onResourceTimeout = function (e) {
+/*Line 52 - TestFlow.PhantomJS.js */                    self.fire('requestTimeout', e);
+/*Line 53 - TestFlow.PhantomJS.js */                };
+/*Line 54 - TestFlow.PhantomJS.js */                this._page.onResourceReceived = function (e) {
+/*Line 55 - TestFlow.PhantomJS.js */                    self.fire('response', e);
+/*Line 56 - TestFlow.PhantomJS.js */                };
+/*Line 57 - TestFlow.PhantomJS.js */                this._page.onResourceError = function (e) {
+/*Line 58 - TestFlow.PhantomJS.js */                    self.fire('responseError', e);
+/*Line 59 - TestFlow.PhantomJS.js */                };
 
 
-/*Line 53 - TestFlow.PhantomJS.js */                this.on('request', function (e) {
-/*Line 54 - TestFlow.PhantomJS.js */                    self.pushWait();
-/*Line 55 - TestFlow.PhantomJS.js */                    self.updateRequest(e.url, e.id, 'load');
-/*Line 56 - TestFlow.PhantomJS.js */                });
-/*Line 57 - TestFlow.PhantomJS.js */                this.on('requestTimeout', function (e) {
-/*Line 58 - TestFlow.PhantomJS.js */                    self.popWait();
-/*Line 59 - TestFlow.PhantomJS.js */                    self.updateRequest(e.url, e.id, 'timeout');
-/*Line 60 - TestFlow.PhantomJS.js */                });
-/*Line 61 - TestFlow.PhantomJS.js */                this.on('responseError', function (e) {
-/*Line 62 - TestFlow.PhantomJS.js */                    self.popWait();
-/*Line 63 - TestFlow.PhantomJS.js */                    self.updateRequest(e.url, e.id, 'error');
-/*Line 64 - TestFlow.PhantomJS.js */                });
-/*Line 65 - TestFlow.PhantomJS.js */                this.on('response', function (e) {
-/*Line 66 - TestFlow.PhantomJS.js */                    self.updateRequest(e.url, e.id, e.stage);
-/*Line 67 - TestFlow.PhantomJS.js */                    // ignore redirect url
-/*Line 68 - TestFlow.PhantomJS.js */                    if (e.redirectURL) {
-/*Line 69 - TestFlow.PhantomJS.js */                        return;
-/*Line 70 - TestFlow.PhantomJS.js */                    }
-/*Line 71 - TestFlow.PhantomJS.js */                    // ignore chunks
-/*Line 72 - TestFlow.PhantomJS.js */                    if (e.stage === 'end') {
-/*Line 73 - TestFlow.PhantomJS.js */                        self.popWait();
-/*Line 74 - TestFlow.PhantomJS.js */                    }
-/*Line 75 - TestFlow.PhantomJS.js */                });
-/*Line 76 - TestFlow.PhantomJS.js */                this.on('error', function () {
-/*Line 77 - TestFlow.PhantomJS.js */                    setTimeout(function () {
-/*Line 78 - TestFlow.PhantomJS.js */                        phantom.exit(1);
-/*Line 79 - TestFlow.PhantomJS.js */                    }, 1000);
-/*Line 80 - TestFlow.PhantomJS.js */                });
-/*Line 81 - TestFlow.PhantomJS.js */                this.on('done', function () {
-/*Line 82 - TestFlow.PhantomJS.js */                    phantom.exit();
-/*Line 83 - TestFlow.PhantomJS.js */                });
-/*Line 84 - TestFlow.PhantomJS.js */            },
-/*Line 85 - TestFlow.PhantomJS.js */            navigate: function (action, url) {
-/*Line 86 - TestFlow.PhantomJS.js */                this.pushWait();
-/*Line 87 - TestFlow.PhantomJS.js */                var self = this;
-/*Line 88 - TestFlow.PhantomJS.js */                this._page.open(url, function (status) {
-/*Line 89 - TestFlow.PhantomJS.js */                    self.popWait();
-/*Line 90 - TestFlow.PhantomJS.js */                    if (status === 'fail') {
-/*Line 91 - TestFlow.PhantomJS.js */                        self.set_status('fail');
-/*Line 92 - TestFlow.PhantomJS.js */                        return;
-/*Line 93 - TestFlow.PhantomJS.js */                    }
-/*Line 94 - TestFlow.PhantomJS.js */                });
-/*Line 95 - TestFlow.PhantomJS.js */            },
-/*Line 96 - TestFlow.PhantomJS.js */            evalJS: function (exp) {
-/*Line 97 - TestFlow.PhantomJS.js */                return this._page.evaluate(function (e) {
-/*Line 98 - TestFlow.PhantomJS.js */                    return eval(e);
-/*Line 99 - TestFlow.PhantomJS.js */                }, exp);
+/*Line 62 - TestFlow.PhantomJS.js */                this.on('request', function (e) {
+/*Line 63 - TestFlow.PhantomJS.js */                    self.pushWait();
+/*Line 64 - TestFlow.PhantomJS.js */                    self.updateRequest(e.url, e.id, 'load');
+/*Line 65 - TestFlow.PhantomJS.js */                });
+/*Line 66 - TestFlow.PhantomJS.js */                this.on('requestTimeout', function (e) {
+/*Line 67 - TestFlow.PhantomJS.js */                    self.popWait();
+/*Line 68 - TestFlow.PhantomJS.js */                    self.updateRequest(e.url, e.id, 'timeout');
+/*Line 69 - TestFlow.PhantomJS.js */                });
+/*Line 70 - TestFlow.PhantomJS.js */                this.on('responseError', function (e) {
+/*Line 71 - TestFlow.PhantomJS.js */                    self.popWait();
+/*Line 72 - TestFlow.PhantomJS.js */                    self.updateRequest(e.url, e.id, 'error');
+/*Line 73 - TestFlow.PhantomJS.js */                });
+/*Line 74 - TestFlow.PhantomJS.js */                this.on('response', function (e) {
+/*Line 75 - TestFlow.PhantomJS.js */                    self.updateRequest(e.url, e.id, e.stage, e.redirectURL);
+/*Line 76 - TestFlow.PhantomJS.js */                    // ignore redirect url
+/*Line 77 - TestFlow.PhantomJS.js */                    if (e.redirectURL) {
+/*Line 78 - TestFlow.PhantomJS.js */                        //self.popWait();
+/*Line 79 - TestFlow.PhantomJS.js */                        //return;
+/*Line 80 - TestFlow.PhantomJS.js */                    }
+/*Line 81 - TestFlow.PhantomJS.js */                    // ignore chunks
+/*Line 82 - TestFlow.PhantomJS.js */                    if (e.status == 204 || e.stage === 'end') {
+/*Line 83 - TestFlow.PhantomJS.js */                        self.popWait();
+/*Line 84 - TestFlow.PhantomJS.js */                    } else {
+/*Line 85 - TestFlow.PhantomJS.js */                        if (!/start|load/i.test(e.stage)) {
+/*Line 86 - TestFlow.PhantomJS.js */                            self.debugLog(JSON.stringify(e, undefined, 2));
+/*Line 87 - TestFlow.PhantomJS.js */                        }
+/*Line 88 - TestFlow.PhantomJS.js */                    }
+/*Line 89 - TestFlow.PhantomJS.js */                });
+/*Line 90 - TestFlow.PhantomJS.js */                this.on('error', function () {
+/*Line 91 - TestFlow.PhantomJS.js */                    self.saveResults();
+/*Line 92 - TestFlow.PhantomJS.js */                    setTimeout(function () {
+/*Line 93 - TestFlow.PhantomJS.js */                        phantom.exit(1);
+/*Line 94 - TestFlow.PhantomJS.js */                    }, 1000);
+/*Line 95 - TestFlow.PhantomJS.js */                });
+/*Line 96 - TestFlow.PhantomJS.js */                this.on('done', function () {
+/*Line 97 - TestFlow.PhantomJS.js */                    self.saveResults();
+/*Line 98 - TestFlow.PhantomJS.js */                    phantom.exit();
+/*Line 99 - TestFlow.PhantomJS.js */                });
 /*Line 100 - TestFlow.PhantomJS.js */            },
-/*Line 101 - TestFlow.PhantomJS.js */            type: function (action, selector, text) {
+/*Line 101 - TestFlow.PhantomJS.js */            navigate: function (action, url) {
+/*Line 102 - TestFlow.PhantomJS.js */                this.pushWait();
+/*Line 103 - TestFlow.PhantomJS.js */                var self = this;
+/*Line 104 - TestFlow.PhantomJS.js */                this._page.open(url, function (status) {
+/*Line 105 - TestFlow.PhantomJS.js */                    self.popWait();
+/*Line 106 - TestFlow.PhantomJS.js */                    if (status === 'fail') {
+/*Line 107 - TestFlow.PhantomJS.js */                        self.set_status('fail');
+/*Line 108 - TestFlow.PhantomJS.js */                        return;
+/*Line 109 - TestFlow.PhantomJS.js */                    }
+/*Line 110 - TestFlow.PhantomJS.js */                });
+/*Line 111 - TestFlow.PhantomJS.js */            },
+/*Line 112 - TestFlow.PhantomJS.js */            evalJS: function (exp) {
+/*Line 113 - TestFlow.PhantomJS.js */                return this._page.evaluate(function (e) {
+/*Line 114 - TestFlow.PhantomJS.js */                    return eval(e);
+/*Line 115 - TestFlow.PhantomJS.js */                }, exp);
+/*Line 116 - TestFlow.PhantomJS.js */            },
+/*Line 117 - TestFlow.PhantomJS.js */            type: function (action, selector, text) {
 
-/*Line 103 - TestFlow.PhantomJS.js */            },
-/*Line 104 - TestFlow.PhantomJS.js */            keyPress: function (action, selector, keys) {
-/*Line 105 - TestFlow.PhantomJS.js */            },
-/*Line 106 - TestFlow.PhantomJS.js */            click: function (action, selector) {
+/*Line 119 - TestFlow.PhantomJS.js */            },
+/*Line 120 - TestFlow.PhantomJS.js */            keyPress: function (action, selector, keys) {
+/*Line 121 - TestFlow.PhantomJS.js */            },
+/*Line 122 - TestFlow.PhantomJS.js */            click: function (action, selector) {
 
-/*Line 108 - TestFlow.PhantomJS.js */            },
-/*Line 109 - TestFlow.PhantomJS.js */            setElementValue: function (action, selector, value) {
-/*Line 110 - TestFlow.PhantomJS.js */                this._page.evaluate(function (s, v) {
-/*Line 111 - TestFlow.PhantomJS.js */                    var e = document.querySelector(s);
-/*Line 112 - TestFlow.PhantomJS.js */                    e.value = v;
-/*Line 113 - TestFlow.PhantomJS.js */                }, selector, value);
-/*Line 114 - TestFlow.PhantomJS.js */            },
-/*Line 115 - TestFlow.PhantomJS.js */            load: function () {
-
-
-/*Line 118 - TestFlow.PhantomJS.js */                var inputTest = system.args[1];
-/*Line 119 - TestFlow.PhantomJS.js */                this._config.port = system.args[2] || this._config.port;
-/*Line 120 - TestFlow.PhantomJS.js */                var self = this;
-
-/*Line 122 - TestFlow.PhantomJS.js */                var webserver = require('webserver');
-
-/*Line 124 - TestFlow.PhantomJS.js */                var s = webserver.create().listen(this._config.port, {}, function (rin, rout) {
-/*Line 125 - TestFlow.PhantomJS.js */                    try {
-/*Line 126 - TestFlow.PhantomJS.js */                        self.serverGet(rin, rout);
-/*Line 127 - TestFlow.PhantomJS.js */                    } catch (error) {
-/*Line 128 - TestFlow.PhantomJS.js */                        self.debugLog(error);
-/*Line 129 - TestFlow.PhantomJS.js */                    }
-/*Line 130 - TestFlow.PhantomJS.js */                    })
-/*Line 131 - TestFlow.PhantomJS.js */                if (s) {
-/*Line 132 - TestFlow.PhantomJS.js */                    this.debugLog('web server started running on ' + this._config.port);
-/*Line 133 - TestFlow.PhantomJS.js */                }
-
-/*Line 135 - TestFlow.PhantomJS.js */                this.set_test(JSON.parse(fs.read(inputTest)));
+/*Line 124 - TestFlow.PhantomJS.js */            },
+/*Line 125 - TestFlow.PhantomJS.js */            setElementValue: function (action, selector, value) {
+/*Line 126 - TestFlow.PhantomJS.js */                this._page.evaluate(function (s, v) {
+/*Line 127 - TestFlow.PhantomJS.js */                    var e = document.querySelector(s);
+/*Line 128 - TestFlow.PhantomJS.js */                    e.value = v;
+/*Line 129 - TestFlow.PhantomJS.js */                }, selector, value);
+/*Line 130 - TestFlow.PhantomJS.js */            },
+/*Line 131 - TestFlow.PhantomJS.js */            load: function () {
 
 
-/*Line 138 - TestFlow.PhantomJS.js */            },
-/*Line 139 - TestFlow.PhantomJS.js */            serverGet: function (request, response) {
-/*Line 140 - TestFlow.PhantomJS.js */                var url = request.url;
+/*Line 134 - TestFlow.PhantomJS.js */                var inputTest = system.args[1];
+/*Line 135 - TestFlow.PhantomJS.js */                //this._config.port = system.args[2] || this._config.port;
+/*Line 136 - TestFlow.PhantomJS.js */                //var self = this;
 
-/*Line 142 - TestFlow.PhantomJS.js */                this.debugLog(url);
+/*Line 138 - TestFlow.PhantomJS.js */                //var webserver = require('webserver');
 
-/*Line 144 - TestFlow.PhantomJS.js */                if (url == '/') {
-/*Line 145 - TestFlow.PhantomJS.js */                    url = '/result.html';
-/*Line 146 - TestFlow.PhantomJS.js */                }
-/*Line 147 - TestFlow.PhantomJS.js */                if (/\.(html|htm|css|jpg|gif|map|js|png)/i.test(url)) {
-/*Line 148 - TestFlow.PhantomJS.js */                    var path = new FileInfo(fs.workingDirectory);
-/*Line 149 - TestFlow.PhantomJS.js */                    path = path.parent().append("web");
+/*Line 140 - TestFlow.PhantomJS.js */                //var s = webserver.create().listen(this._config.port, {}, function (rin, rout) {
+/*Line 141 - TestFlow.PhantomJS.js */                //    try {
+/*Line 142 - TestFlow.PhantomJS.js */                //        self.serverGet(rin, rout);
+/*Line 143 - TestFlow.PhantomJS.js */                //    } catch (error) {
+/*Line 144 - TestFlow.PhantomJS.js */                //        self.debugLog(error);
+/*Line 145 - TestFlow.PhantomJS.js */                //    }
+/*Line 146 - TestFlow.PhantomJS.js */                //    })
+/*Line 147 - TestFlow.PhantomJS.js */                //if (s) {
+/*Line 148 - TestFlow.PhantomJS.js */                //    this.debugLog('web server started running on ' + this._config.port);
+/*Line 149 - TestFlow.PhantomJS.js */                //}
+
+/*Line 151 - TestFlow.PhantomJS.js */                var isTF = /\.testflow\.json$/i;
+
+/*Line 153 - TestFlow.PhantomJS.js */                if (isTF.test(inputTest)) {
+/*Line 154 - TestFlow.PhantomJS.js */                    this.set_test(JSON.parse(fs.read(inputTest)));
+/*Line 155 - TestFlow.PhantomJS.js */                }
+/*Line 156 - TestFlow.PhantomJS.js */                else {
+/*Line 157 - TestFlow.PhantomJS.js */                    // it is folder...
+/*Line 158 - TestFlow.PhantomJS.js */                    var files = [];
+/*Line 159 - TestFlow.PhantomJS.js */                    function populateList(f) {
+/*Line 160 - TestFlow.PhantomJS.js */                        var list = new AtomEnumerator(fs.list(f));
+/*Line 161 - TestFlow.PhantomJS.js */                        while (list.next()) {
+/*Line 162 - TestFlow.PhantomJS.js */                            var item = list.current();
+/*Line 163 - TestFlow.PhantomJS.js */                            if (item == "." || item == "..")
+/*Line 164 - TestFlow.PhantomJS.js */                                continue;
+/*Line 165 - TestFlow.PhantomJS.js */                            var path = f + fs.separator + item;
+/*Line 166 - TestFlow.PhantomJS.js */                            if (fs.isDirectory(path)) {
+/*Line 167 - TestFlow.PhantomJS.js */                                populateList(path);
+/*Line 168 - TestFlow.PhantomJS.js */                            } else {
+/*Line 169 - TestFlow.PhantomJS.js */                                if (isTF.test(path)) {
+/*Line 170 - TestFlow.PhantomJS.js */                                    var t = JSON.parse(fs.read(path));
+/*Line 171 - TestFlow.PhantomJS.js */                                    t.path = path;
+/*Line 172 - TestFlow.PhantomJS.js */                                    files.push(t);
+/*Line 173 - TestFlow.PhantomJS.js */                                }
+/*Line 174 - TestFlow.PhantomJS.js */                            }
+/*Line 175 - TestFlow.PhantomJS.js */                        }
+/*Line 176 - TestFlow.PhantomJS.js */                    }
+
+/*Line 178 - TestFlow.PhantomJS.js */                    populateList(inputTest);
+
+/*Line 180 - TestFlow.PhantomJS.js */                    while (files.length) {
+/*Line 181 - TestFlow.PhantomJS.js */                        this.stack.push(files.pop());
+/*Line 182 - TestFlow.PhantomJS.js */                    }
+
+/*Line 184 - TestFlow.PhantomJS.js */                    if (this.stack.length) {
+/*Line 185 - TestFlow.PhantomJS.js */                        this.set_test(this.stack.pop());
+/*Line 186 - TestFlow.PhantomJS.js */                    } else {
+/*Line 187 - TestFlow.PhantomJS.js */                        this.set_status('error', 'no test flow files found');
+/*Line 188 - TestFlow.PhantomJS.js */                    }
+
+/*Line 190 - TestFlow.PhantomJS.js */                }
+
+/*Line 192 - TestFlow.PhantomJS.js */            },
+/*Line 193 - TestFlow.PhantomJS.js */            saveResults: function () {
+
+/*Line 195 - TestFlow.PhantomJS.js */                var r = JSON.stringify(this.results, undefined, 2);
+/*Line 196 - TestFlow.PhantomJS.js */                fs.write(resultFilePath, r, 'w');
+
+/*Line 198 - TestFlow.PhantomJS.js */            },
+/*Line 199 - TestFlow.PhantomJS.js */            serverGet: function (request, response) {
+/*Line 200 - TestFlow.PhantomJS.js */                var url = request.url;
+
+/*Line 202 - TestFlow.PhantomJS.js */                this.debugLog(url);
+
+/*Line 204 - TestFlow.PhantomJS.js */                if (url == '/') {
+/*Line 205 - TestFlow.PhantomJS.js */                    url = '/result.html';
+/*Line 206 - TestFlow.PhantomJS.js */                }
+/*Line 207 - TestFlow.PhantomJS.js */                if (/\.(html|htm|css|jpg|gif|map|js|png)/i.test(url)) {
+/*Line 208 - TestFlow.PhantomJS.js */                    var path = new FileInfo(fs.workingDirectory);
+/*Line 209 - TestFlow.PhantomJS.js */                    path = path.parent().append("web");
 
 
-/*Line 152 - TestFlow.PhantomJS.js */                    var uri = new UrlInfo(url.substr(1));
+/*Line 212 - TestFlow.PhantomJS.js */                    var uri = new UrlInfo(url.substr(1));
 
-/*Line 154 - TestFlow.PhantomJS.js */                    var filePath = path.append(uri.pathQuery);
+/*Line 214 - TestFlow.PhantomJS.js */                    var filePath = path.append(uri.pathQuery);
 
-/*Line 156 - TestFlow.PhantomJS.js */                    var ext = filePath.extension();
+/*Line 216 - TestFlow.PhantomJS.js */                    var ext = filePath.extension();
 
-/*Line 158 - TestFlow.PhantomJS.js */                    response.statusCode = 200;
-/*Line 159 - TestFlow.PhantomJS.js */                    response.headers = {
-/*Line 160 - TestFlow.PhantomJS.js */                        'Cache': 'no-cache',
-/*Line 161 - TestFlow.PhantomJS.js */                        'Content-Type': (mimeTypes[ext] || 'text/html')
-/*Line 162 - TestFlow.PhantomJS.js */                    };
-/*Line 163 - TestFlow.PhantomJS.js */                    response.setEncoding('binary');
-/*Line 164 - TestFlow.PhantomJS.js */                    response.write(fs.read(filePath.toString()));
-/*Line 165 - TestFlow.PhantomJS.js */                    response.close();
-/*Line 166 - TestFlow.PhantomJS.js */                } else {
-/*Line 167 - TestFlow.PhantomJS.js */                    this.debugLog('invalid url: ' + url);
-/*Line 168 - TestFlow.PhantomJS.js */                }
-/*Line 169 - TestFlow.PhantomJS.js */            }
-/*Line 170 - TestFlow.PhantomJS.js */        }
-/*Line 171 - TestFlow.PhantomJS.js */    });
-/*Line 172 - TestFlow.PhantomJS.js */})(window,TestFlowEngine.prototype);
-
+/*Line 218 - TestFlow.PhantomJS.js */                    response.statusCode = 200;
+/*Line 219 - TestFlow.PhantomJS.js */                    response.headers = {
+/*Line 220 - TestFlow.PhantomJS.js */                        'Cache': 'no-cache',
+/*Line 221 - TestFlow.PhantomJS.js */                        'Content-Type': (mimeTypes[ext] || 'text/html')
+/*Line 222 - TestFlow.PhantomJS.js */                    };
+/*Line 223 - TestFlow.PhantomJS.js */                    response.setEncoding('binary');
+/*Line 224 - TestFlow.PhantomJS.js */                    response.write(fs.read(filePath.toString()));
+/*Line 225 - TestFlow.PhantomJS.js */                    response.close();
+/*Line 226 - TestFlow.PhantomJS.js */                } else {
+/*Line 227 - TestFlow.PhantomJS.js */                    this.debugLog('invalid url: ' + url);
+/*Line 228 - TestFlow.PhantomJS.js */                }
+/*Line 229 - TestFlow.PhantomJS.js */            }
+/*Line 230 - TestFlow.PhantomJS.js */        }
+/*Line 231 - TestFlow.PhantomJS.js */    });
+/*Line 232 - TestFlow.PhantomJS.js */})(window,TestFlowEngine.prototype);
 
     window.currentTestEngine = new TestFlowPhantomJS();
     window.currentTestEngine.run();

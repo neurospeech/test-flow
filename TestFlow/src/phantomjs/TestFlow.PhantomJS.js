@@ -15,6 +15,15 @@ var TestFlowPhantomJS = window.TestFlowPhantomJS = (function (window, base) {
 
     //console.log(fs.workingDirectory);
 
+
+    var resultFilePath = (function () {
+        var d = (new Date());
+        var fileName = d.toJSON().replace("T", "-").replace(".", "-").replace(":", "-").replace(":", "-").replace("Z", "");
+
+        return (new FileInfo(fs.workingDirectory)).parent().append("result-" + fileName + ".json");
+    })();
+
+
     return createClass({
         name: "TestFlowPhantomJS",
         base: base,
@@ -63,22 +72,29 @@ var TestFlowPhantomJS = window.TestFlowPhantomJS = (function (window, base) {
                     self.updateRequest(e.url, e.id, 'error');
                 });
                 this.on('response', function (e) {
-                    self.updateRequest(e.url, e.id, e.stage);
+                    self.updateRequest(e.url, e.id, e.stage, e.redirectURL);
                     // ignore redirect url
                     if (e.redirectURL) {
-                        return;
+                        //self.popWait();
+                        //return;
                     }
                     // ignore chunks
-                    if (e.stage === 'end') {
+                    if (e.status == 204 || e.stage === 'end') {
                         self.popWait();
+                    } else {
+                        if (!/start|load/i.test(e.stage)) {
+                            self.debugLog(JSON.stringify(e, undefined, 2));
+                        }
                     }
                 });
                 this.on('error', function () {
+                    self.saveResults();
                     setTimeout(function () {
                         phantom.exit(1);
                     }, 1000);
                 });
                 this.on('done', function () {
+                    self.saveResults();
                     phantom.exit();
                 });
             },
@@ -116,24 +132,68 @@ var TestFlowPhantomJS = window.TestFlowPhantomJS = (function (window, base) {
 
 
                 var inputTest = system.args[1];
-                this._config.port = system.args[2] || this._config.port;
-                var self = this;
+                //this._config.port = system.args[2] || this._config.port;
+                //var self = this;
 
-                var webserver = require('webserver');
+                //var webserver = require('webserver');
 
-                var s = webserver.create().listen(this._config.port, {}, function (rin, rout) {
-                    try {
-                        self.serverGet(rin, rout);
-                    } catch (error) {
-                        self.debugLog(error);
+                //var s = webserver.create().listen(this._config.port, {}, function (rin, rout) {
+                //    try {
+                //        self.serverGet(rin, rout);
+                //    } catch (error) {
+                //        self.debugLog(error);
+                //    }
+                //    })
+                //if (s) {
+                //    this.debugLog('web server started running on ' + this._config.port);
+                //}
+
+                var isTF = /\.testflow\.json$/i;
+
+                if (isTF.test(inputTest)) {
+                    this.set_test(JSON.parse(fs.read(inputTest)));
+                }
+                else {
+                    // it is folder...
+                    var files = [];
+                    function populateList(f) {
+                        var list = new AtomEnumerator(fs.list(f));
+                        while (list.next()) {
+                            var item = list.current();
+                            if (item == "." || item == "..")
+                                continue;
+                            var path = f + fs.separator + item;
+                            if (fs.isDirectory(path)) {
+                                populateList(path);
+                            } else {
+                                if (isTF.test(path)) {
+                                    var t = JSON.parse(fs.read(path));
+                                    t.path = path;
+                                    files.push(t);
+                                }
+                            }
+                        }
                     }
-                    })
-                if (s) {
-                    this.debugLog('web server started running on ' + this._config.port);
+
+                    populateList(inputTest);
+
+                    while (files.length) {
+                        this.stack.push(files.pop());
+                    }
+
+                    if (this.stack.length) {
+                        this.set_test(this.stack.pop());
+                    } else {
+                        this.set_status('error', 'no test flow files found');
+                    }
+
                 }
 
-                this.set_test(JSON.parse(fs.read(inputTest)));
+            },
+            saveResults: function () {
 
+                var r = JSON.stringify(this.results, undefined, 2);
+                fs.write(resultFilePath, r, 'w');
 
             },
             serverGet: function (request, response) {

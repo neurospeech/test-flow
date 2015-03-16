@@ -19,14 +19,16 @@ namespace TestFlow
             string exe = dir.FullName + "\\phantomjs.exe";
             string exeArgs =
                 "--disk-cache=true " +
+                //"--remote-debugger-autorun=yes " +
+                //"--remote-debugger-port=5999 " +
                 "--cookies-file=" + dir.FullName + "\\cookies.txt " +
                 dir.Parent.FullName + "\\test-flow-phantom.js " + 
-                dir.Parent.FullName + "\\TestFlow\\AtomsWebsiteCheck.testflow.json 3245";
+                dir.Parent.FullName + "\\TestFlow ";
 
 
             ProcessHelper.Execute(exe, exeArgs,
                 o => {
-                    LoadBrowser();
+                    //LoadBrowser();
                     Console.WriteLine(o); 
                 },
                 e => Console.Error.WriteLine(e));
@@ -43,7 +45,7 @@ namespace TestFlow
         {
             if (browserLoaded)
                 return;
-            Process.Start("http://localhost:3245/result.html");
+            Process.Start("http://127.0.0.1:5999");
             browserLoaded = true;
         }
     }

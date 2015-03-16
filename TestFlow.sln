@@ -1,5 +1,4 @@
-﻿
-Microsoft Visual Studio Solution File, Format Version 12.00
+﻿Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2013
 VisualStudioVersion = 12.0.31101.0
 MinimumVisualStudioVersion = 10.0.40219.1
@@ -11,8 +10,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		test-flow-phantom.js = test-flow-phantom.js
 		..\test-flow.js = ..\test-flow.js
 	EndProjectSection
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{EA579840-8F7D-4312-8F09-6B8893008A3A}"
 EndProject
 Project("{E24C65DC-7377-472B-9ABA-BC803B73C61A}") = "web", "http://localhost:5139", "{82FBD3B0-6ACF-426B-BDEF-3FD1CBD2DD44}"
 	ProjectSection(WebsiteProperties) = preProject

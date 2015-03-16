@@ -1,0 +1,10 @@
+﻿{
+    "label": "Google",
+    "config": {
+        "debug": 1
+    },
+    "steps": [
+        [ "navigate", "http://google.com" ],
+        [ "assert", "window.$", "jQuery loaded" ]
+    ]
+}

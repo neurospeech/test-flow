@@ -47,6 +47,9 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
+    <None Include="Google.testflow.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Include="AtomsWebsiteCheck.testflow.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
